@@ -8,9 +8,6 @@ h = 0.05;
 % Antal steg
 N = (t_1 - t_0) / h;
 
-% Tidsvektor
-t = linspace(t_0, t_1, N+1);
-
 % Framåt Euler (explicit Euler)
 q1 = zeros(1, N+1);
 q2 = zeros(1, N+1);
@@ -33,6 +30,8 @@ for i = 1:N
     p1(i+1) = p1(i) - h * q1(i) / (r^3); 
     p2(i+1) = p2(i) - h * q2(i) / (r^3); 
 end
+
+
 
 % Plotta framåt Euler (röd)
 figure;
