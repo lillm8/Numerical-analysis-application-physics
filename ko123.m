@@ -1,15 +1,23 @@
-u_fram = true;
+% Ordning 1:
+u_fram = false;
 u_bak = false;
-u_mitt = false;
 u_symp = true;
-u_ode = false;
+
+% Ordning 2:
+u_mitt = false;
+
+% Övrigt:
+u_ode = true;
 
 
-h_order1 = 0.001;
+h_order1 = 0.005;
 h_order2 = sqrt(h_order1);
 t_start = 0;
-t_slut = 100;
-a = 0.2;
+t_slut = 5000;
+a = 0.1;
+
+figure;
+
 
 
 % Euler-fram
@@ -46,7 +54,6 @@ if u_fram == true
     end
     
     % Plotta framåt Euler (röd)
-    figure;
     plot(q1, q2, 'r');
     hold on;
 end
@@ -104,6 +111,8 @@ if u_bak == true
     
     % Plotta bakåt Euler (blå)
     plot(q1, q2, 'b');
+    hold on;
+
 end
 
 
@@ -111,7 +120,6 @@ end
 
 % ODE-45
 if u_ode == true
-    a = 0.5;
     % Initialvillkor
     q1_0 = 1 - a;
     q2_0 = 0;
@@ -131,12 +139,16 @@ if u_ode == true
     tspan = [0, 100];
     
     % Alternativ för ode45
-    options = odeset('RelTol', 1e-3, 'AbsTol', 1e-4);
+    options = odeset('RelTol', 1e-6,'AbsTol', 1e-6);
     
     % Lös systemet med ode45
     [t, y] = ode45(ode_syst, tspan, y0, options);
     
     plot(y(:,1), y(:,2), 'g');
+    hold on;
+    
+
+    losningsvektor_ode45 = [q1(end), q2(end)];
 end
 
 
@@ -186,18 +198,21 @@ if u_mitt == true
 
     % Plotta mittpunkts-metod (svart)
     plot(q1, q2, 'k');
+    hold on;
+
 end
 
 
 
 
 
+% Symplektisk euler-metod
 
 if u_symp == true
     t_0 = t_start;
     t_1 = t_slut;
     % Tidssteg
-    h = h_order2;
+    h = h_order1;
     % Antal steg
 
     N = round((t_1 - t_0) / h);    
@@ -225,8 +240,8 @@ if u_symp == true
             q2_ny = q2(n) + h*(p2_ny);  
             
             r_ny = sqrt((q1(n))^2 + (q2(n))^2);
-            p1_ny = p1(n) - h * (q1(n))/ (r_ny^(3/2));
-            p2_ny = p2(n) - h * (q2(n))/ (r_ny^(3/2));
+            p1_ny = p1(n) - h * (q1(n))/ (r_ny^(3));
+            p2_ny = p2(n) - h * (q2(n))/ (r_ny^(3));
     
         end    
         
@@ -238,10 +253,14 @@ if u_symp == true
 
 
     % Plotta symplektisk (lila)
-    plot(q1, q2, 'm');
-
-
+    plot(q1, q2, 'm--');
+    hold on;
+    
+    % Lösningsvektor i sista tidssteget:
+    losningsvektor_symp = [q1(end), q2(end)];
 end
+
+
 
 xlabel('q_1');
 ylabel('q_2');
@@ -249,4 +268,20 @@ title('q1 vs q2');
 grid on;
 axis equal;
 
-disp("Graferna visar (när man ökar tiden exempelvis från t = 50 ---> t = 100 \n att")
+
+losningsvektor_ode45_str = mat2str(losningsvektor_ode45); % Convert to string
+losningsvektor_symp_str = mat2str(losningsvektor_symp);   % Convert to string
+
+str = sprintf('%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s', ...
+    'Graferna visar (när man ökar tiden exempelvis från t = 50 ---> t = 100 att', ...
+    '', ...
+    'Frammåt Euler: Energi ökar med tid (spiralerar ut).', ...
+    'Bakåt Euler: Energin minskar med tid (spiralerar inåt), innan q1 och q2 hamnar i samma position och får en orimlig kontinuitet,', ...
+    'Mittpunkts-metod: Energin är konstant (minska värdet av a för att göra tydligare).', ...
+    'Symplektisk Euler: Energin är konstant över tid.', ...
+    '',...
+    'Värdet av (y1,y2) är =',...
+    'ODE45:', losningsvektor_ode45,...
+    'Symplektisk Euler:', losningsvektor_symp);
+ 
+disp(str);
